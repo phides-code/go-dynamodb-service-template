@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  BananasCrudApi:
+    Type: AWS::Serverless::Api
+    Description: "Serverless API for CRUD operations"
+    Properties:
+      Name: "bananas-crud-api"
+      StageName: Prod
+      Cors:
+        AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
+        AllowHeaders: "'Content-Type'"
+        AllowOrigin: "'https://main.AMPLIFY_APP_ID.amplifyapp.com'"
+        # AllowOrigin: "'http://localhost:3000'"
+
+  BananasFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 10
+      Handler: main
+      Runtime: go1.x
+      Policies:
+        - AWSLambdaExecute
+        - DynamoDBCrudPolicy:
+            TableName: !Ref BananasTable
+      Events:
+        BananasOptions:
+          Type: Api
+          Properties:
+            Path: /bananas
+            Method: OPTIONS
+            RestApiId: !Ref BananasCrudApi
+        GetBanana:
+          Type: Api
+          Properties:
+            Path: /bananas/{id}
+            Method: GET
+            RestApiId: !Ref BananasCrudApi
+        GetBananas:
+          Type: Api
+          Properties:
+            Path: /bananas
+            Method: GET
+            RestApiId: !Ref BananasCrudApi
+        PutBanana:
+          Type: Api
+          Properties:
+            Path: /bananas
+            Method: POST
+            RestApiId: !Ref BananasCrudApi
+        DeleteBanana:
+          Type: Api
+          Properties:
+            Path: /bananas/{id}
+            Method: DELETE
+            RestApiId: !Ref BananasCrudApi
+        UpdateBanana:
+          Type: Api
+          Properties:
+            Path: /bananas/{id}
+            Method: PUT
+            RestApiId: !Ref BananasCrudApi
+    Metadata:
+      BuildMethod: makefile
+
+  BananasTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Bananas
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
