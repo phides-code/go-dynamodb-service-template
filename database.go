@@ -17,16 +17,16 @@ import (
 
 type Item struct {
 	Id          string `json:"id" dynamodbav:"id"`
-	Description string `json:"name" dynamodbav:"description"`
+	Description string `json:"description" dynamodbav:"description"`
 	// add more fields
 }
 
 type CreatedItem struct {
-	Description string `json:"name" validate:"required"`
+	Description string `json:"description" validate:"required"`
 }
 
 type UpdatedItem struct {
-	Description string `json:"name" validate:"required"`
+	Description string `json:"description" validate:"required"`
 }
 
 func getClient() (dynamodb.Client, error) {
