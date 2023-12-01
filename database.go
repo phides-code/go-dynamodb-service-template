@@ -35,7 +35,6 @@ func getClient() (dynamodb.Client, error) {
 	dbClient := *dynamodb.NewFromConfig(sdkConfig)
 
 	return dbClient, err
-
 }
 
 func getItem(ctx context.Context, id string) (*Item, error) {

@@ -5,7 +5,7 @@ A Go project template which provides CRUD services for a DynamoDB table, using A
 -   Find and replace "Banana"/"Bananas" with the table name (upper and lowercase)
 -   Update fields in database.go
 -   Update OriginURL in constants.go
--   Add secrets to GitHub Actions for this repo:
+-   Add AWS secrets to GitHub Actions for this repo:
     -   gh secret set AWS_ACCESS_KEY_ID
     -   gh secret set AWS_SECRET_ACCESS_KEY
     -   gh run rerun
