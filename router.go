@@ -121,7 +121,7 @@ func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) 
 }
 
 func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var createdItem CreatedItem
+	var createdItem NewOrUpdatedItem
 	err := json.Unmarshal([]byte(req.Body), &createdItem)
 	if err != nil {
 		log.Printf("Can't unmarshal body: %v", err)
@@ -205,7 +205,7 @@ func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 		return clientError(http.StatusBadRequest)
 	}
 
-	var updatedItem UpdatedItem
+	var updatedItem NewOrUpdatedItem
 	err := json.Unmarshal([]byte(req.Body), &updatedItem)
 	if err != nil {
 		log.Printf("Can't unmarshal body: %v", err)

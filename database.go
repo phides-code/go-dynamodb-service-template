@@ -18,15 +18,16 @@ import (
 type Item struct {
 	Id          string `json:"id" dynamodbav:"id"`
 	Description string `json:"description" dynamodbav:"description"`
+	Location    string `json:"location" dynamodbav:"location"`
+	Quantity    int    `json:"quantity" dynamodbav:"quantity"`
 	// add more fields
 }
 
-type CreatedItem struct {
+type NewOrUpdatedItem struct {
 	Description string `json:"description" validate:"required"`
-}
-
-type UpdatedItem struct {
-	Description string `json:"description" validate:"required"`
+	Location    string `json:"location" validate:"required"`
+	Quantity    int    `json:"quantity" validate:"required"`
+	// add more fields
 }
 
 func getClient() (dynamodb.Client, error) {
@@ -103,10 +104,12 @@ func listItems(ctx context.Context) ([]Item, error) {
 	return items, nil
 }
 
-func insertItem(ctx context.Context, newItem CreatedItem) (*Item, error) {
+func insertItem(ctx context.Context, newItem NewOrUpdatedItem) (*Item, error) {
 	item := Item{
 		Id:          uuid.NewString(),
 		Description: newItem.Description,
+		Location:    newItem.Location,
+		Quantity:    newItem.Quantity,
 		// add more fields
 	}
 
@@ -165,7 +168,7 @@ func deleteItem(ctx context.Context, id string) (*Item, error) {
 	return item, nil
 }
 
-func updateItem(ctx context.Context, id string, updatedItem UpdatedItem) (*Item, error) {
+func updateItem(ctx context.Context, id string, updatedItem NewOrUpdatedItem) (*Item, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
 		return nil, err
@@ -175,6 +178,12 @@ func updateItem(ctx context.Context, id string, updatedItem UpdatedItem) (*Item,
 		expression.Set(
 			expression.Name("description"),
 			expression.Value(updatedItem.Description),
+		).Set(
+			expression.Name("location"),
+			expression.Value(updatedItem.Location),
+		).Set(
+			expression.Name("quantity"),
+			expression.Value(updatedItem.Quantity),
 		),
 		// add more fields
 	).WithCondition(
