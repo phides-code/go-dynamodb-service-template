@@ -11,7 +11,7 @@ Resources:
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
         AllowHeaders: "'Content-Type'"
-        AllowOrigin: "'http://localhost:3000'" # replace with fronted app URL
+        AllowOrigin: "'http://localhost:3000'" # replace with frontend app URL
 
   BananasFunction:
     Type: AWS::Serverless::Function
