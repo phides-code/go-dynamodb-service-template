@@ -2,11 +2,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-  BananasCrudApi:
+  BananasService:
     Type: AWS::Serverless::Api
     Description: "Serverless API for CRUD operations"
     Properties:
-      Name: "bananas-crud-api"
+      Name: "bananas-service"
       StageName: Prod
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
@@ -29,37 +29,37 @@ Resources:
           Properties:
             Path: /bananas
             Method: OPTIONS
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
         GetBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: GET
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
         GetBananas:
           Type: Api
           Properties:
             Path: /bananas
             Method: GET
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
         PutBanana:
           Type: Api
           Properties:
             Path: /bananas
             Method: POST
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
         DeleteBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: DELETE
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
         UpdateBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: PUT
-            RestApiId: !Ref BananasCrudApi
+            RestApiId: !Ref BananasService
     Metadata:
       BuildMethod: makefile
 
