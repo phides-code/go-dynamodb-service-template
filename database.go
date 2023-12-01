@@ -16,18 +16,19 @@ import (
 )
 
 type Item struct {
+	// example database table structure:
 	Id          string `json:"id" dynamodbav:"id"`
 	Description string `json:"description" dynamodbav:"description"`
 	Location    string `json:"location" dynamodbav:"location"`
 	Quantity    int    `json:"quantity" dynamodbav:"quantity"`
-	// add more fields
+	// adjust fields as needed
 }
 
 type NewOrUpdatedItem struct {
 	Description string `json:"description" validate:"required"`
 	Location    string `json:"location" validate:"required"`
 	Quantity    int    `json:"quantity" validate:"required"`
-	// add more fields
+	// adjust fields as needed
 }
 
 func getClient() (dynamodb.Client, error) {
@@ -110,7 +111,7 @@ func insertItem(ctx context.Context, newItem NewOrUpdatedItem) (*Item, error) {
 		Description: newItem.Description,
 		Location:    newItem.Location,
 		Quantity:    newItem.Quantity,
-		// add more fields
+		// adjust fields as needed
 	}
 
 	itemMap, err := attributevalue.MarshalMap(item)
@@ -185,7 +186,7 @@ func updateItem(ctx context.Context, id string, updatedItem NewOrUpdatedItem) (*
 			expression.Name("quantity"),
 			expression.Value(updatedItem.Quantity),
 		),
-		// add more fields
+		// adjust fields as needed
 	).WithCondition(
 		expression.Equal(
 			expression.Name("id"),
