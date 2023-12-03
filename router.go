@@ -60,24 +60,24 @@ func processGet(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 	if !ok {
 		return processGetAll(ctx)
 	} else {
-		return processGetItemById(ctx, id)
+		return processGetEntityById(ctx, id)
 	}
 }
 
-func processGetItemById(ctx context.Context, id string) (events.APIGatewayProxyResponse, error) {
-	log.Printf("Received GET item request with id = %s", id)
+func processGetEntityById(ctx context.Context, id string) (events.APIGatewayProxyResponse, error) {
+	log.Printf("Received GET entity request with id = %s", id)
 
-	item, err := getItem(ctx, id)
+	entity, err := getEntity(ctx, id)
 	if err != nil {
 		return serverError(err)
 	}
 
-	if item == nil {
+	if entity == nil {
 		return clientError(http.StatusNotFound)
 	}
 
 	response := ResponseStructure{
-		Data:         item,
+		Data:         entity,
 		ErrorMessage: nil,
 	}
 
@@ -85,7 +85,7 @@ func processGetItemById(ctx context.Context, id string) (events.APIGatewayProxyR
 	if err != nil {
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched item %s", response.Data)
+	log.Printf("Successfully fetched entity %s", response.Data)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
@@ -95,15 +95,15 @@ func processGetItemById(ctx context.Context, id string) (events.APIGatewayProxyR
 }
 
 func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	log.Print("Received GET items request")
+	log.Print("Received GET entities request")
 
-	items, err := listItems(ctx)
+	entities, err := listEntities(ctx)
 	if err != nil {
 		return serverError(err)
 	}
 
 	response := ResponseStructure{
-		Data:         items,
+		Data:         entities,
 		ErrorMessage: nil,
 	}
 
@@ -111,7 +111,7 @@ func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) 
 	if err != nil {
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched items: %s", response.Data)
+	log.Printf("Successfully fetched entities: %s", response.Data)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
@@ -121,28 +121,28 @@ func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) 
 }
 
 func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var createdItem NewOrUpdatedItem
-	err := json.Unmarshal([]byte(req.Body), &createdItem)
+	var createdEntity NewOrUpdatedEntity
+	err := json.Unmarshal([]byte(req.Body), &createdEntity)
 	if err != nil {
 		log.Printf("Can't unmarshal body: %v", err)
 		return clientError(http.StatusUnprocessableEntity)
 	}
 
-	err = validate.Struct(&createdItem)
+	err = validate.Struct(&createdEntity)
 	if err != nil {
 		log.Printf("Invalid body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
-	log.Printf("Received POST request with item: %+v", createdItem)
+	log.Printf("Received POST request with entity: %+v", createdEntity)
 
-	item, err := insertItem(ctx, createdItem)
+	entity, err := insertEntity(ctx, createdEntity)
 	if err != nil {
 		return serverError(err)
 	}
-	log.Printf("Inserted new item: %+v", item)
+	log.Printf("Inserted new entity: %+v", entity)
 
 	response := ResponseStructure{
-		Data:         item,
+		Data:         entity,
 		ErrorMessage: nil,
 	}
 
@@ -150,10 +150,10 @@ func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events
 	if err != nil {
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched item item %s", response.Data)
+	log.Printf("Successfully fetched entity %s", response.Data)
 
 	additionalHeaders := map[string]string{
-		"Location": fmt.Sprintf("/%s/%s", ApiPath, item.Id),
+		"Location": fmt.Sprintf("/%s/%s", ApiPath, entity.Id),
 	}
 	mergedHeaders := mergeHeaders(headers, additionalHeaders)
 
@@ -171,17 +171,17 @@ func processDelete(ctx context.Context, req events.APIGatewayProxyRequest) (even
 	}
 	log.Printf("Received DELETE request with id = %s", id)
 
-	item, err := deleteItem(ctx, id)
+	entity, err := deleteEntity(ctx, id)
 	if err != nil {
 		return serverError(err)
 	}
 
-	if item == nil {
+	if entity == nil {
 		return clientError(http.StatusNotFound)
 	}
 
 	response := ResponseStructure{
-		Data:         item,
+		Data:         entity,
 		ErrorMessage: nil,
 	}
 
@@ -190,7 +190,7 @@ func processDelete(ctx context.Context, req events.APIGatewayProxyRequest) (even
 		return serverError(err)
 	}
 
-	log.Printf("Successfully deleted item item %+v", item)
+	log.Printf("Successfully deleted entity %+v", entity)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
@@ -205,31 +205,31 @@ func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 		return clientError(http.StatusBadRequest)
 	}
 
-	var updatedItem NewOrUpdatedItem
-	err := json.Unmarshal([]byte(req.Body), &updatedItem)
+	var updatedEntity NewOrUpdatedEntity
+	err := json.Unmarshal([]byte(req.Body), &updatedEntity)
 	if err != nil {
 		log.Printf("Can't unmarshal body: %v", err)
 		return clientError(http.StatusUnprocessableEntity)
 	}
 
-	err = validate.Struct(&updatedItem)
+	err = validate.Struct(&updatedEntity)
 	if err != nil {
 		log.Printf("Invalid body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
-	log.Printf("Received PUT request with item: %+v", updatedItem)
+	log.Printf("Received PUT request with entity: %+v", updatedEntity)
 
-	item, err := updateItem(ctx, id, updatedItem)
+	entity, err := updateEntity(ctx, id, updatedEntity)
 	if err != nil {
 		return serverError(err)
 	}
 
-	if item == nil {
+	if entity == nil {
 		return clientError(http.StatusNotFound)
 	}
 
 	response := ResponseStructure{
-		Data:         item,
+		Data:         entity,
 		ErrorMessage: nil,
 	}
 
@@ -238,10 +238,10 @@ func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 		return serverError(err)
 	}
 
-	log.Printf("Updated item: %+v", item)
+	log.Printf("Updated entity: %+v", entity)
 
 	additionalHeaders := map[string]string{
-		"Location": fmt.Sprintf("/%s/%s", ApiPath, item.Id),
+		"Location": fmt.Sprintf("/%s/%s", ApiPath, entity.Id),
 	}
 	mergedHeaders := mergeHeaders(headers, additionalHeaders)
 

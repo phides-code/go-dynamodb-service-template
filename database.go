@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Item struct {
+type Entity struct {
 	// example database table structure:
 	Id          string `json:"id" dynamodbav:"id"`
 	Description string `json:"description" dynamodbav:"description"`
@@ -24,7 +24,7 @@ type Item struct {
 	// adjust fields as needed
 }
 
-type NewOrUpdatedItem struct {
+type NewOrUpdatedEntity struct {
 	Description string `json:"description" validate:"required"`
 	Location    string `json:"location" validate:"required"`
 	Quantity    int    `json:"quantity" validate:"required"`
@@ -39,7 +39,7 @@ func getClient() (dynamodb.Client, error) {
 	return dbClient, err
 }
 
-func getItem(ctx context.Context, id string) (*Item, error) {
+func getEntity(ctx context.Context, id string) (*Entity, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
 		return nil, err
@@ -57,23 +57,23 @@ func getItem(ctx context.Context, id string) (*Item, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Executed GetItem DynamoDb successfully. Result: %#v", result)
+	log.Printf("Executed GetEntity DynamoDb successfully. Result: %#v", result)
 
 	if result.Item == nil {
 		return nil, nil
 	}
 
-	item := new(Item)
-	err = attributevalue.UnmarshalMap(result.Item, item)
+	entity := new(Entity)
+	err = attributevalue.UnmarshalMap(result.Item, entity)
 	if err != nil {
 		return nil, err
 	}
 
-	return item, nil
+	return entity, nil
 }
 
-func listItems(ctx context.Context) ([]Item, error) {
-	items := make([]Item, 0)
+func listEntities(ctx context.Context) ([]Entity, error) {
+	entities := make([]Entity, 0)
 
 	var token map[string]types.AttributeValue
 
@@ -88,13 +88,13 @@ func listItems(ctx context.Context) ([]Item, error) {
 			return nil, err
 		}
 
-		var fetchedItem []Item
-		err = attributevalue.UnmarshalListOfMaps(result.Items, &fetchedItem)
+		var fetchedEntity []Entity
+		err = attributevalue.UnmarshalListOfMaps(result.Items, &fetchedEntity)
 		if err != nil {
 			return nil, err
 		}
 
-		items = append(items, fetchedItem...)
+		entities = append(entities, fetchedEntity...)
 		token = result.LastEvaluatedKey
 		if token == nil {
 			break
@@ -102,26 +102,26 @@ func listItems(ctx context.Context) ([]Item, error) {
 
 	}
 
-	return items, nil
+	return entities, nil
 }
 
-func insertItem(ctx context.Context, newItem NewOrUpdatedItem) (*Item, error) {
-	item := Item{
+func insertEntity(ctx context.Context, newEntity NewOrUpdatedEntity) (*Entity, error) {
+	entity := Entity{
 		Id:          uuid.NewString(),
-		Description: newItem.Description,
-		Location:    newItem.Location,
-		Quantity:    newItem.Quantity,
+		Description: newEntity.Description,
+		Location:    newEntity.Location,
+		Quantity:    newEntity.Quantity,
 		// adjust fields as needed
 	}
 
-	itemMap, err := attributevalue.MarshalMap(item)
+	entityMap, err := attributevalue.MarshalMap(entity)
 	if err != nil {
 		return nil, err
 	}
 
 	input := &dynamodb.PutItemInput{
 		TableName: aws.String(TableName),
-		Item:      itemMap,
+		Item:      entityMap,
 	}
 
 	res, err := db.PutItem(ctx, input)
@@ -129,15 +129,15 @@ func insertItem(ctx context.Context, newItem NewOrUpdatedItem) (*Item, error) {
 		return nil, err
 	}
 
-	err = attributevalue.UnmarshalMap(res.Attributes, &item)
+	err = attributevalue.UnmarshalMap(res.Attributes, &entity)
 	if err != nil {
 		return nil, err
 	}
 
-	return &item, nil
+	return &entity, nil
 }
 
-func deleteItem(ctx context.Context, id string) (*Item, error) {
+func deleteEntity(ctx context.Context, id string) (*Entity, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
 		return nil, err
@@ -160,16 +160,16 @@ func deleteItem(ctx context.Context, id string) (*Item, error) {
 		return nil, nil
 	}
 
-	item := new(Item)
-	err = attributevalue.UnmarshalMap(res.Attributes, item)
+	entity := new(Entity)
+	err = attributevalue.UnmarshalMap(res.Attributes, entity)
 	if err != nil {
 		return nil, err
 	}
 
-	return item, nil
+	return entity, nil
 }
 
-func updateItem(ctx context.Context, id string, updatedItem NewOrUpdatedItem) (*Item, error) {
+func updateEntity(ctx context.Context, id string, updatedEntity NewOrUpdatedEntity) (*Entity, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
 		return nil, err
@@ -178,13 +178,13 @@ func updateItem(ctx context.Context, id string, updatedItem NewOrUpdatedItem) (*
 	expr, err := expression.NewBuilder().WithUpdate(
 		expression.Set(
 			expression.Name("description"),
-			expression.Value(updatedItem.Description),
+			expression.Value(updatedEntity.Description),
 		).Set(
 			expression.Name("location"),
-			expression.Value(updatedItem.Location),
+			expression.Value(updatedEntity.Location),
 		).Set(
 			expression.Name("quantity"),
-			expression.Value(updatedItem.Quantity),
+			expression.Value(updatedEntity.Quantity),
 		),
 		// adjust fields as needed
 	).WithCondition(
@@ -227,11 +227,11 @@ func updateItem(ctx context.Context, id string, updatedItem NewOrUpdatedItem) (*
 		return nil, nil
 	}
 
-	item := new(Item)
-	err = attributevalue.UnmarshalMap(res.Attributes, item)
+	entity := new(Entity)
+	err = attributevalue.UnmarshalMap(res.Attributes, entity)
 	if err != nil {
 		return nil, err
 	}
 
-	return item, nil
+	return entity, nil
 }
