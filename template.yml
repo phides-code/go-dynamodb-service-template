@@ -2,18 +2,18 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
-  BananasService:
+  AppnameBananasService:
     Type: AWS::Serverless::Api
     Description: "Serverless API for CRUD operations"
     Properties:
-      Name: "bananas-service"
+      Name: "appname-bananas-service"
       StageName: Prod
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
         AllowHeaders: "'Content-Type'"
         AllowOrigin: "'http://localhost:3000'" # replace with frontend app URL
 
-  BananasFunction:
+  AppnameBananasFunction:
     Type: AWS::Serverless::Function
     Properties:
       Timeout: 10
@@ -22,51 +22,51 @@ Resources:
       Policies:
         - AWSLambdaExecute
         - DynamoDBCrudPolicy:
-            TableName: !Ref BananasTable
+            TableName: !Ref AppnameBananasTable
       Events:
         BananasOptions:
           Type: Api
           Properties:
             Path: /bananas
             Method: OPTIONS
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
         GetBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: GET
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
         GetBananas:
           Type: Api
           Properties:
             Path: /bananas
             Method: GET
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
         PutBanana:
           Type: Api
           Properties:
             Path: /bananas
             Method: POST
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
         DeleteBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: DELETE
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
         UpdateBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: PUT
-            RestApiId: !Ref BananasService
+            RestApiId: !Ref AppnameBananasService
     Metadata:
       BuildMethod: makefile
 
-  BananasTable:
+  AppnameBananasTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Bananas
+      TableName: AppnameBananas
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S

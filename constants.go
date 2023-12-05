@@ -1,11 +1,10 @@
 package main
 
-import "strings"
-
 // replace with frontend app URL
 const OriginURL = "http://localhost:3000"
 
 // replace with your table name
-const TableName = "Bananas"
+const TableName = "AppnameBananas"
 
-var ApiPath = strings.ToLower(TableName)
+// replace with your API paith
+const ApiPath = "bananas"

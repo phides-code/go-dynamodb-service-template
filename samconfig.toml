@@ -1,8 +1,8 @@
 version = 0.1
 [default.deploy.parameters]
-stack_name = "bananas-service"
+stack_name = "appname-bananas-service"
 resolve_s3 = true
-s3_prefix = "bananas-service"
+s3_prefix = "appname-bananas-service"
 region = "ca-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM"

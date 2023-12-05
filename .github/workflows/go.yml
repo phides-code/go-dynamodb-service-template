@@ -13,7 +13,7 @@ jobs:
     build:
         runs-on: ubuntu-latest
         env:
-            SAM_STACK_NAME: bananas-service
+            SAM_STACK_NAME: appname-bananas-service
             SAM_REGION: ca-central-1
             SAM_CAPABILITIES: CAPABILITY_IAM
         steps:

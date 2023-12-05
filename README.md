@@ -2,6 +2,7 @@
 
 A Go project template which provides CRUD services for a DynamoDB table, using AWS Lambda and API Gateway, deployed with AWS SAM and GitHub Actions.
 
+-   Find and replace `Appname` with the name of your app (upper and lowercase A)
 -   Find and replace `Banana`/`Bananas` with the table name (upper and lowercase B)
 -   Find and replace `ca-central-1` with your AWS region
 -   Update fields in `database.go`

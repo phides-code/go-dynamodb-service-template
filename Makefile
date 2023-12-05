@@ -2,7 +2,7 @@
 build:
 	sam build
 
-build-BananasFunction:
+build-AppnameBananasFunction:
 	GOOS=linux CGO_ENABLED=0 go build -o $(ARTIFACTS_DIR)/main .
 
 .PHONY: init
