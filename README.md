@@ -1,6 +1,6 @@
 # go-dynamodb-service-template
 
-A Go project template which provides CRUD services for a DynamoDB table, using AWS Lambda and API Gateway, deployed with AWS SAM and GitHub Actions.
+A Go project template providing CRUD services for a DynamoDB table, using AWS Lambda and API Gateway, deployed with AWS SAM and GitHub Actions.
 
 ### Customize
 
