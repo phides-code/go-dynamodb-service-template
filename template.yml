@@ -17,10 +17,11 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Timeout: 10
-      Handler: main
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2023
       Policies:
         - AWSLambdaExecute
+        - SecretsManagerReadWrite
         - DynamoDBCrudPolicy:
             TableName: !Ref AppnameBananasTable
       Events:

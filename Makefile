@@ -3,7 +3,7 @@ build:
 	sam build
 
 build-AppnameBananasFunction:
-	GOOS=linux CGO_ENABLED=0 go build -o $(ARTIFACTS_DIR)/main .
+	GOOS=linux CGO_ENABLED=0 go build -tags lambda.norpc -o $(ARTIFACTS_DIR)/bootstrap .
 
 .PHONY: init
 init: build
