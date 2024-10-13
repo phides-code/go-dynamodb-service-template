@@ -24,3 +24,8 @@ Once the repo is setup on GitHub, add AWS secrets to GitHub Actions for this rep
 
 -   `gh secret set AWS_ACCESS_KEY_ID`
 -   `gh secret set AWS_SECRET_ACCESS_KEY`
+
+### Test
+
+-   `curl -X POST http://localhost:8000/bananas -H "Content-Type: application/json" -d @post-data.json |jq .`
+-   `curl http://localhost:8000/bananas |jq .`
