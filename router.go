@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,7 +25,32 @@ var headers = map[string]string{
 }
 
 func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	log.Printf("Received req %#v", req)
+	log.Println("router() received " + req.HTTPMethod + " request")
+
+	providedApiKey := req.Headers["X-API-KEY"]
+
+	// x-api-key shows up in Camel-Case when run in SAM for some reason
+	if providedApiKey == "" {
+		providedApiKey = req.Headers["X-Api-Key"]
+	}
+
+	apiKey, err := getApiKey()
+
+	if err != nil {
+		log.Printf("router() error running getApiKey(): %v", err)
+		return serverError(err)
+	}
+
+	if apiKey == nil {
+		errorMessage := "router() error: apiKey not found"
+		log.Println(errorMessage)
+		return serverError(errors.New(errorMessage))
+	}
+
+	if providedApiKey != *apiKey {
+		log.Println("router() error: apiKey mismatch")
+		return clientError(http.StatusUnauthorized)
+	}
 
 	switch req.HTTPMethod {
 	case "GET":
@@ -38,6 +64,7 @@ func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIG
 	case "OPTIONS":
 		return processOptions()
 	default:
+		log.Println("router() error parsing HTTP method")
 		return clientError(http.StatusMethodNotAllowed)
 	}
 }
@@ -56,16 +83,16 @@ func processOptions() (events.APIGatewayProxyResponse, error) {
 }
 
 func processGet(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	id, ok := req.PathParameters["id"]
-	if !ok {
-		return processGetAll(ctx)
-	} else {
+	id, idPresent := req.PathParameters["id"]
+	if idPresent {
 		return processGetEntityById(ctx, id)
+	} else {
+		return processGetAll(ctx)
 	}
 }
 
 func processGetEntityById(ctx context.Context, id string) (events.APIGatewayProxyResponse, error) {
-	log.Printf("Received GET entity request with id = %s", id)
+	log.Println("running processGetEntityById: " + id)
 
 	entity, err := getEntity(ctx, id)
 	if err != nil {
@@ -83,9 +110,9 @@ func processGetEntityById(ctx context.Context, id string) (events.APIGatewayProx
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processGetEntityById() error running json.Marshal")
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched entity %s", response.Data)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
@@ -95,7 +122,7 @@ func processGetEntityById(ctx context.Context, id string) (events.APIGatewayProx
 }
 
 func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) {
-	log.Print("Received GET entities request")
+	log.Println("running processGetAll")
 
 	entities, err := listEntities(ctx)
 	if err != nil {
@@ -109,9 +136,9 @@ func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) 
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processGetAll() error running json.Marshal")
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched entities: %s", response.Data)
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: http.StatusOK,
@@ -121,7 +148,9 @@ func processGetAll(ctx context.Context) (events.APIGatewayProxyResponse, error) 
 }
 
 func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	var createdEntity NewOrUpdatedEntity
+	log.Println("running processPost()")
+
+	var createdEntity NewEntity
 	err := json.Unmarshal([]byte(req.Body), &createdEntity)
 	if err != nil {
 		log.Printf("Can't unmarshal body: %v", err)
@@ -133,13 +162,11 @@ func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events
 		log.Printf("Invalid body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
-	log.Printf("Received POST request with entity: %+v", createdEntity)
 
 	entity, err := insertEntity(ctx, createdEntity)
 	if err != nil {
 		return serverError(err)
 	}
-	log.Printf("Inserted new entity: %+v", entity)
 
 	response := ResponseStructure{
 		Data:         entity,
@@ -148,9 +175,9 @@ func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processPost() error running json.Marshal")
 		return serverError(err)
 	}
-	log.Printf("Successfully fetched entity %s", response.Data)
 
 	additionalHeaders := map[string]string{
 		"Location": fmt.Sprintf("/%s/%s", ApiPath, entity.Id),
@@ -164,60 +191,27 @@ func processPost(ctx context.Context, req events.APIGatewayProxyRequest) (events
 	}, nil
 }
 
-func processDelete(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	id, ok := req.PathParameters["id"]
-	if !ok {
-		return clientError(http.StatusBadRequest)
-	}
-	log.Printf("Received DELETE request with id = %s", id)
-
-	entity, err := deleteEntity(ctx, id)
-	if err != nil {
-		return serverError(err)
-	}
-
-	if entity == nil {
-		return clientError(http.StatusNotFound)
-	}
-
-	response := ResponseStructure{
-		Data:         entity,
-		ErrorMessage: nil,
-	}
-
-	responseJson, err := json.Marshal(response)
-	if err != nil {
-		return serverError(err)
-	}
-
-	log.Printf("Successfully deleted entity %+v", entity)
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       string(responseJson),
-		Headers:    headers,
-	}, nil
-}
-
 func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	id, ok := req.PathParameters["id"]
-	if !ok {
+	id, idPresent := req.PathParameters["id"]
+	if !idPresent {
+		log.Println("processPut() error reading req.PathParameters[\"id\"]")
 		return clientError(http.StatusBadRequest)
 	}
 
-	var updatedEntity NewOrUpdatedEntity
+	log.Println("running processPut with id: " + id)
+
+	var updatedEntity UpdatedEntity
 	err := json.Unmarshal([]byte(req.Body), &updatedEntity)
 	if err != nil {
-		log.Printf("Can't unmarshal body: %v", err)
+		log.Printf("Error unmarshalling body: %v", err)
 		return clientError(http.StatusUnprocessableEntity)
 	}
 
 	err = validate.Struct(&updatedEntity)
 	if err != nil {
-		log.Printf("Invalid body: %v", err)
+		log.Printf("Error validating body: %v", err)
 		return clientError(http.StatusBadRequest)
 	}
-	log.Printf("Received PUT request with entity: %+v", updatedEntity)
 
 	entity, err := updateEntity(ctx, id, updatedEntity)
 	if err != nil {
@@ -235,10 +229,9 @@ func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 
 	responseJson, err := json.Marshal(response)
 	if err != nil {
+		log.Println("processPut() error running json.Marshal")
 		return serverError(err)
 	}
-
-	log.Printf("Updated entity: %+v", entity)
 
 	additionalHeaders := map[string]string{
 		"Location": fmt.Sprintf("/%s/%s", ApiPath, entity.Id),
@@ -249,5 +242,40 @@ func processPut(ctx context.Context, req events.APIGatewayProxyRequest) (events.
 		StatusCode: http.StatusOK,
 		Body:       string(responseJson),
 		Headers:    mergedHeaders,
+	}, nil
+}
+
+func processDelete(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	id, idPresent := req.PathParameters["id"]
+	if !idPresent {
+		log.Println("processDelete() error reading req.PathParameters[\"id\"]")
+		return clientError(http.StatusBadRequest)
+	}
+	log.Println("running processDelete on id: " + id)
+
+	entity, err := deleteEntity(ctx, id)
+	if err != nil {
+		return serverError(err)
+	}
+
+	if entity == nil {
+		return clientError(http.StatusNotFound)
+	}
+
+	response := ResponseStructure{
+		Data:         entity,
+		ErrorMessage: nil,
+	}
+
+	responseJson, err := json.Marshal(response)
+	if err != nil {
+		log.Println("processDelete() error running json.Marshal")
+		return serverError(err)
+	}
+
+	return events.APIGatewayProxyResponse{
+		StatusCode: http.StatusOK,
+		Body:       string(responseJson),
+		Headers:    headers,
 	}, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -16,25 +17,22 @@ import (
 )
 
 type Entity struct {
-	// example database table structure:
-	Id          string `json:"id" dynamodbav:"id"`
-	Description string `json:"description" dynamodbav:"description"`
-	Location    string `json:"location" dynamodbav:"location"`
-	Quantity    int    `json:"quantity" dynamodbav:"quantity"`
-	// adjust fields as needed
+	Id        string `json:"id" dynamodbav:"id"`
+	Content   string `json:"content" dynamodbav:"content"`
+	CreatedOn uint64 `json:"createdOn" dynamodbav:"createdOn"`
 }
 
-type NewOrUpdatedEntity struct {
-	Description string `json:"description" validate:"required"`
-	Location    string `json:"location" validate:"required"`
-	Quantity    int    `json:"quantity" validate:"required"`
-	// adjust fields as needed
+type NewEntity struct {
+	Content string `json:"content" validate:"required"`
 }
 
-func getClient() (dynamodb.Client, error) {
+type UpdatedEntity struct {
+	Content string `json:"content" validate:"required"`
+}
+
+func getDbClient() (*dynamodb.Client, error) {
 	sdkConfig, err := config.LoadDefaultConfig(context.TODO())
-
-	dbClient := *dynamodb.NewFromConfig(sdkConfig)
+	dbClient := dynamodb.NewFromConfig(sdkConfig)
 
 	return dbClient, err
 }
@@ -42,6 +40,7 @@ func getClient() (dynamodb.Client, error) {
 func getEntity(ctx context.Context, id string) (*Entity, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
+		log.Println("getEntity() error running attributevalue.Marshal")
 		return nil, err
 	}
 
@@ -52,20 +51,21 @@ func getEntity(ctx context.Context, id string) (*Entity, error) {
 		},
 	}
 
-	log.Printf("Calling DynamoDB with input: %v", input)
 	result, err := db.GetItem(ctx, input)
 	if err != nil {
+		log.Println("getEntity() error running db.GetItem")
 		return nil, err
 	}
-	log.Printf("Executed GetEntity DynamoDb successfully. Result: %#v", result)
 
 	if result.Item == nil {
+		log.Println("getEntity() result.Item is nil")
 		return nil, nil
 	}
 
 	entity := new(Entity)
 	err = attributevalue.UnmarshalMap(result.Item, entity)
 	if err != nil {
+		log.Println("getEntity() error running attributevalue.UnmarshalMap")
 		return nil, err
 	}
 
@@ -85,12 +85,14 @@ func listEntities(ctx context.Context) ([]Entity, error) {
 
 		result, err := db.Scan(ctx, input)
 		if err != nil {
+			log.Println("listEntities() error running db.Scan")
 			return nil, err
 		}
 
 		var fetchedEntity []Entity
 		err = attributevalue.UnmarshalListOfMaps(result.Items, &fetchedEntity)
 		if err != nil {
+			log.Println("listEntities() error running attributevalue.UnmarshalListOfMaps")
 			return nil, err
 		}
 
@@ -99,23 +101,23 @@ func listEntities(ctx context.Context) ([]Entity, error) {
 		if token == nil {
 			break
 		}
-
 	}
 
 	return entities, nil
 }
 
-func insertEntity(ctx context.Context, newEntity NewOrUpdatedEntity) (*Entity, error) {
+func insertEntity(ctx context.Context, newEntity NewEntity) (*Entity, error) {
+	createdOnValue := uint64(time.Now().UnixMilli()) // Create a uint64 with current epoch
+
 	entity := Entity{
-		Id:          uuid.NewString(),
-		Description: newEntity.Description,
-		Location:    newEntity.Location,
-		Quantity:    newEntity.Quantity,
-		// adjust fields as needed
+		Id:        uuid.NewString(),
+		Content:   newEntity.Content,
+		CreatedOn: createdOnValue,
 	}
 
 	entityMap, err := attributevalue.MarshalMap(entity)
 	if err != nil {
+		log.Println("insertEntity() error running attributevalue.MarshalMap")
 		return nil, err
 	}
 
@@ -126,67 +128,31 @@ func insertEntity(ctx context.Context, newEntity NewOrUpdatedEntity) (*Entity, e
 
 	res, err := db.PutItem(ctx, input)
 	if err != nil {
+		log.Println("insertEntity() error running db.PutItem")
 		return nil, err
 	}
 
 	err = attributevalue.UnmarshalMap(res.Attributes, &entity)
 	if err != nil {
+		log.Println("insertEntity() error running attributevalue.UnmarshalMap")
 		return nil, err
 	}
 
 	return &entity, nil
 }
 
-func deleteEntity(ctx context.Context, id string) (*Entity, error) {
+func updateEntity(ctx context.Context, id string, updatedEntity UpdatedEntity) (*Entity, error) {
 	key, err := attributevalue.Marshal(id)
 	if err != nil {
-		return nil, err
-	}
-
-	input := &dynamodb.DeleteItemInput{
-		TableName: aws.String(TableName),
-		Key: map[string]types.AttributeValue{
-			"id": key,
-		},
-		ReturnValues: types.ReturnValue(*aws.String("ALL_OLD")),
-	}
-
-	res, err := db.DeleteItem(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.Attributes == nil {
-		return nil, nil
-	}
-
-	entity := new(Entity)
-	err = attributevalue.UnmarshalMap(res.Attributes, entity)
-	if err != nil {
-		return nil, err
-	}
-
-	return entity, nil
-}
-
-func updateEntity(ctx context.Context, id string, updatedEntity NewOrUpdatedEntity) (*Entity, error) {
-	key, err := attributevalue.Marshal(id)
-	if err != nil {
+		log.Println("updateEntity() error running attributevalue.Marshal")
 		return nil, err
 	}
 
 	expr, err := expression.NewBuilder().WithUpdate(
 		expression.Set(
-			expression.Name("description"),
-			expression.Value(updatedEntity.Description),
-		).Set(
-			expression.Name("location"),
-			expression.Value(updatedEntity.Location),
-		).Set(
-			expression.Name("quantity"),
-			expression.Value(updatedEntity.Quantity),
+			expression.Name("content"),
+			expression.Value(updatedEntity.Content),
 		),
-		// adjust fields as needed
 	).WithCondition(
 		expression.Equal(
 			expression.Name("id"),
@@ -194,6 +160,7 @@ func updateEntity(ctx context.Context, id string, updatedEntity NewOrUpdatedEnti
 		),
 	).Build()
 	if err != nil {
+		log.Println("updateEntity error running expression.NewBuilder")
 		return nil, err
 	}
 
@@ -216,20 +183,60 @@ func updateEntity(ctx context.Context, id string, updatedEntity NewOrUpdatedEnti
 		if errors.As(err, &smErr) {
 			var condCheckFailed *types.ConditionalCheckFailedException
 			if errors.As(err, &condCheckFailed) {
+				log.Println("updateEntity() error running db.UpdateItem: Conditional check failed")
 				return nil, nil
 			}
 		}
 
+		log.Println("updateEntity() error running db.UpdateItem")
 		return nil, err
 	}
 
 	if res.Attributes == nil {
+		log.Println("updateEntity() error: res.Attributes == nil - Entity not found")
 		return nil, nil
 	}
 
 	entity := new(Entity)
 	err = attributevalue.UnmarshalMap(res.Attributes, entity)
 	if err != nil {
+		log.Println("updateEntity() error running attributevalue.UnmarshalMap")
+		return nil, err
+	}
+
+	return entity, nil
+}
+
+func deleteEntity(ctx context.Context, id string) (*Entity, error) {
+	key, err := attributevalue.Marshal(id)
+	if err != nil {
+		log.Println("deleteEntity() error running attributevalue.Marshal")
+		return nil, err
+	}
+
+	input := &dynamodb.DeleteItemInput{
+		TableName: aws.String(TableName),
+		Key: map[string]types.AttributeValue{
+			"id": key,
+		},
+		ReturnValues: types.ReturnValue(*aws.String("ALL_OLD")),
+	}
+
+	res, err := db.DeleteItem(ctx, input)
+	if err != nil {
+		log.Println("deleteEntity() error running db.DeleteItem")
+		return nil, err
+	}
+
+	if res.Attributes == nil {
+		log.Println("deleteEntity() error: res.Attributes == nil - Entity not found")
+		return nil, nil
+	}
+
+	entity := new(Entity)
+	err = attributevalue.UnmarshalMap(res.Attributes, entity)
+	if err != nil {
+		log.Println("deleteEntity() error running attributevalue.UnmarshalMap")
 		return nil, err
 	}
 
