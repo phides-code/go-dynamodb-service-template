@@ -12,6 +12,9 @@ Resources:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
         AllowHeaders: "'Content-Type, x-api-key'"
         AllowOrigin: "'http://localhost:3000'" # replace with frontend app URL
+      Auth:
+        DefaultAuthorizer: NONE
+        ApiKeyRequired: true
 
   AppnameBananasFunction:
     Type: AWS::Serverless::Function
@@ -31,42 +34,36 @@ Resources:
           Properties:
             Path: /bananas
             Method: OPTIONS
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
         GetBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: GET
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
         GetBananas:
           Type: Api
           Properties:
             Path: /bananas
             Method: GET
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
         PutBanana:
           Type: Api
           Properties:
             Path: /bananas
             Method: POST
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
         DeleteBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: DELETE
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
         UpdateBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: PUT
-            ApiKeyRequired: true
             RestApiId: !Ref AppnameBananasService
     Metadata:
       BuildMethod: makefile
