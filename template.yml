@@ -29,7 +29,6 @@ Resources:
         AllowHeaders: "'Content-Type, x-api-key'"
         AllowOrigin: "'http://localhost:3000'" # replace with frontend app URL
       Auth:
-        DefaultAuthorizer: NONE
         ApiKeyRequired: true
 
   AppnameBananasFunction:
