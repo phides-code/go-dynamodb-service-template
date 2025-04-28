@@ -1,7 +1,23 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  ApiKeyValue:
+    Type: String
+    NoEcho: true
+    Description: "API Key for the AppnameBananasService"
+
 Resources:
+  AppnameApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: "AppnameApiKey"
+      Enabled: true
+      Value: !Ref ApiKeyValue
+      StageKeys:
+        - RestApiId: !Ref AppnameBananasService
+          StageName: Prod
+
   AppnameBananasService:
     Type: AWS::Serverless::Api
     Description: "Serverless API for CRUD operations"
