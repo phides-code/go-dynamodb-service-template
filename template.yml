@@ -61,7 +61,6 @@ Resources:
       MemorySize: 512
       Policies:
         - AWSLambdaExecute
-        - SecretsManagerReadWrite
         - DynamoDBCrudPolicy:
             TableName: !Ref AppnameBananasTable
       Events:
