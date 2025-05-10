@@ -20,12 +20,13 @@ A Go project template providing CRUD services for a DynamoDB table, using AWS La
 
 ### Setup GitHub actions
 
-Once the repo is setup on GitHub, add AWS secrets to GitHub Actions for this repo:
+Once the repo is setup on GitHub, add AWS secrets to GitHub Actions for this repo. API_KEY can be anything - it will be required in request header:
 
 -   `gh secret set AWS_ACCESS_KEY_ID`
 -   `gh secret set AWS_SECRET_ACCESS_KEY`
+-   `gh secret set API_KEY`
 
 ### Test
 
--   `curl -X POST http://localhost:8000/bananas -H "Content-Type: application/json" -d @post-data.json |jq .`
--   `curl http://localhost:8000/bananas |jq .`
+-   `curl -X POST -H "x-api-key: my-api-key" -H "Content-Type: application/json" http://localhost:8000/bananas -d @post-data.json |jq .`
+-   `curl -H "x-api-key: my-api-key" http://localhost:8000/bananas |jq .`
