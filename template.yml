@@ -70,36 +70,56 @@ Resources:
             Path: /bananas
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: false
+        BananasOptionsId:
+          Type: Api
+          Properties:
+            Path: /bananas/{id}
+            Method: OPTIONS
+            RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: false
         GetBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: GET
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: true
         GetBananas:
           Type: Api
           Properties:
             Path: /bananas
             Method: GET
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: true
         PutBanana:
           Type: Api
           Properties:
             Path: /bananas
             Method: POST
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: true
         DeleteBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: DELETE
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: true
         UpdateBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: PUT
             RestApiId: !Ref AppnameBananasService
+            Auth:
+              ApiKeyRequired: true
     Metadata:
       BuildMethod: makefile
 
