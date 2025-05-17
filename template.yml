@@ -21,20 +21,22 @@ Resources:
       Auth:
         ApiKeyRequired: true
 
-  AppnameApiKey:
+  AppnameBananasApiKey:
     Type: AWS::ApiGateway::ApiKey
+    DependsOn: AppnameBananasServiceProdStage
     Properties:
-      Name: "AppnameApiKey"
+      Name: "AppnameBananasApiKey"
       Enabled: true
       Value: !Ref ApiKeyValue
       StageKeys:
         - RestApiId: !Ref AppnameBananasService
           StageName: Prod
 
-  AppnameUsagePlan:
+  AppnameBananasUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    DependsOn: AppnameBananasServiceProdStage
     Properties:
-      UsagePlanName: "AppnameUsagePlan"
+      UsagePlanName: "AppnameBananasUsagePlan"
       ApiStages:
         - ApiId: !Ref AppnameBananasService
           Stage: Prod
@@ -45,12 +47,12 @@ Resources:
         Limit: 10000
         Period: MONTH
 
-  AppnameUsagePlanKey:
+  AppnameBananasUsagePlanKey:
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
-      KeyId: !Ref AppnameApiKey
+      KeyId: !Ref AppnameBananasApiKey
       KeyType: API_KEY
-      UsagePlanId: !Ref AppnameUsagePlan
+      UsagePlanId: !Ref AppnameBananasUsagePlan
 
   AppnameBananasFunction:
     Type: AWS::Serverless::Function
