@@ -6,7 +6,7 @@ A Go project template providing CRUD services for a DynamoDB table, using AWS La
 
 -   Find and replace `Appname` with the name of the app (upper and lowercase A)
 -   Find and replace `Banana`/`Bananas` with the table name (upper and lowercase B)
--   Find and replace `ca-central-1` with the AWS region
+-   Find and replace `us-east-1` with the AWS region
 -   Update fields in `database.go`
 -   Update values in `constants.go`
 
