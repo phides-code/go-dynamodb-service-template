@@ -12,8 +12,8 @@ import (
 )
 
 type ResponseStructure struct {
-	Data         interface{} `json:"data"`
-	ErrorMessage *string     `json:"errorMessage"` // can be string or nil
+	Data         any     `json:"data"`
+	ErrorMessage *string `json:"errorMessage"` // can be string or nil
 }
 
 var validate *validator.Validate = validator.New()
