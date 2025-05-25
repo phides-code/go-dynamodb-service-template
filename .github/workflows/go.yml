@@ -23,8 +23,10 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5.0.2
 
-            - name: Build
-              run: go build -tags lambda.norpc -o bootstrap -ldflags "-linkmode external -extldflags -static" ./...
+            # - name: Build
+            #   run: go build -tags lambda.norpc -o bootstrap -ldflags "-linkmode external -extldflags -static" ./...
+            - name: SAM Build
+              run: sam build
 
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v4
