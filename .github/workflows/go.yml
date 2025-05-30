@@ -15,7 +15,6 @@ jobs:
         env:
             SAM_STACK_NAME: appname-bananas-service
             SAM_REGION: us-east-1
-            SAM_CAPABILITIES: CAPABILITY_IAM
         steps:
             - name: Checkout
               uses: actions/checkout@v4.2.1
@@ -36,11 +35,9 @@ jobs:
             - name: Deploy with SAM
               run: |
                   sam deploy \
-                  --parameter-overrides \
-                    ApiKeyValue="${{ secrets.API_KEY }}" \
                   --stack-name ${{ env.SAM_STACK_NAME }} \
                   --region ${{ env.SAM_REGION }} \
-                  --capabilities ${{ env.SAM_CAPABILITIES }} \
+                  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
                   --resolve-s3 \
                   --no-confirm-changeset \
                   --no-fail-on-empty-changeset

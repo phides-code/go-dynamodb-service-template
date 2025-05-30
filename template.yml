@@ -1,12 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
-Parameters:
-  ApiKeyValue:
-    Type: String
-    NoEcho: true
-    Description: "API Key for the AppnameBananasService"
-
 Resources:
   AppnameBananasService:
     Type: AWS::Serverless::Api
@@ -14,45 +8,22 @@ Resources:
     Properties:
       Name: "appname-bananas-service"
       StageName: Prod
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+        InvokeRole: NONE
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
-        AllowHeaders: "'Content-Type, x-api-key'"
-        AllowOrigin: "'http://localhost:3000'" # replace for production
-      Auth:
-        ApiKeyRequired: true
+        AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
+        AllowOrigin: "'http://localhost:5173'" # replace for production
+        AllowCredentials: true
 
-  AppnameBananasApiKey:
-    Type: AWS::ApiGateway::ApiKey
-    DependsOn: AppnameBananasServiceProdStage
-    Properties:
-      Name: "AppnameBananasApiKey"
-      Enabled: true
-      Value: !Ref ApiKeyValue
-      StageKeys:
-        - RestApiId: !Ref AppnameBananasService
-          StageName: Prod
-
-  AppnameBananasUsagePlan:
-    Type: AWS::ApiGateway::UsagePlan
-    DependsOn: AppnameBananasServiceProdStage
-    Properties:
-      UsagePlanName: "AppnameBananasUsagePlan"
-      ApiStages:
-        - ApiId: !Ref AppnameBananasService
-          Stage: Prod
-      Throttle:
-        RateLimit: 100
-        BurstLimit: 20
-      Quota:
-        Limit: 10000
-        Period: MONTH
-
-  AppnameBananasUsagePlanKey:
-    Type: AWS::ApiGateway::UsagePlanKey
-    Properties:
-      KeyId: !Ref AppnameBananasApiKey
-      KeyType: API_KEY
-      UsagePlanId: !Ref AppnameBananasUsagePlan
+      # Logging settings
+      MethodSettings:
+        - LoggingLevel: INFO
+          ResourcePath: "/*"
+          HttpMethod: "*"
+          MetricsEnabled: true
+          DataTraceEnabled: true
 
   AppnameBananasFunction:
     Type: AWS::Serverless::Function
@@ -73,7 +44,7 @@ Resources:
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
             Auth:
-              ApiKeyRequired: false
+              Authorizer: NONE
         BananasOptionsId:
           Type: Api
           Properties:
@@ -81,47 +52,42 @@ Resources:
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
             Auth:
-              ApiKeyRequired: false
+              Authorizer: NONE
         GetBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: GET
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              ApiKeyRequired: true
+            
         GetBananas:
           Type: Api
           Properties:
             Path: /bananas
             Method: GET
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              ApiKeyRequired: true
+            
         PutBanana:
           Type: Api
           Properties:
             Path: /bananas
             Method: POST
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              ApiKeyRequired: true
+            
         DeleteBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: DELETE
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              ApiKeyRequired: true
+            
         UpdateBanana:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: PUT
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              ApiKeyRequired: true
+            
     Metadata:
       BuildMethod: makefile
 

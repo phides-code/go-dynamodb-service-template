@@ -19,8 +19,9 @@ type ResponseStructure struct {
 var validate *validator.Validate = validator.New()
 
 var headers = map[string]string{
-	"Access-Control-Allow-Origin":  OriginURL,
-	"Access-Control-Allow-Headers": "Content-Type, x-api-key",
+	"Access-Control-Allow-Origin":      OriginURL,
+	"Access-Control-Allow-Headers":     "Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization",
+	"Access-Control-Allow-Credentials": "true",
 }
 
 func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
