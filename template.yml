@@ -104,3 +104,10 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 2
         WriteCapacityUnits: 2
+# ...existing code...
+
+Outputs:
+  ApiUrl:
+    Description: "URL of the API Gateway endpoint"
+    Value: !Sub "https://${AppnameBananasService}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    
