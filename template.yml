@@ -14,7 +14,7 @@ Resources:
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
         AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
-        AllowOrigin: "'http://localhost:5173'" # replace for production
+        AllowOrigin: "'FRONTEND_URL'" # replace with frontend URL
         AllowCredentials: true
 
       # Logging settings
