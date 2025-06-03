@@ -20,7 +20,7 @@ jobs:
               uses: actions/checkout@v4.2.1
 
             - name: Set up Go
-              uses: actions/setup-go@v5.0.2
+              uses: actions/setup-go@v5.5.0
 
             - name: SAM Build
               run: sam build
