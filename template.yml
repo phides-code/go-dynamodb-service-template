@@ -1,6 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 
+Parameters:
+  CfToken:
+    Type: String
+    NoEcho: true
+    Description: Token for API auth (e.g. Cloudflare or custom); set via --parameter-overrides CfToken=xxx when deploying
+
 Resources:
   AppnameBananasService:
     Type: AWS::Serverless::Api
@@ -36,7 +42,7 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          AWS_CF_TOKEN: ""  # override with env.json for local; set via console/parameter for deploy
+          AWS_CF_TOKEN: !Ref CfToken  # from --parameter-overrides CfToken=xxx; for local use env.json
       Policies:
         - AWSLambdaExecute
         - DynamoDBCrudPolicy:
