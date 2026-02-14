@@ -35,3 +35,5 @@ jobs:
             - name: Deploy with SAM
               run: |
                   make deploy
+              env:
+                  AWS_CF_TOKEN: ${{ secrets.AWS_CF_TOKEN }}

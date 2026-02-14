@@ -9,13 +9,15 @@ Resources:
       Name: "appname-bananas-service"
       StageName: Prod
       Auth:
-        DefaultAuthorizer: AWS_IAM
-        InvokeRole: NONE
+        # DefaultAuthorizer: AWS_IAM
+        # InvokeRole: NONE
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
-        AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
-        AllowOrigin: "'FRONTEND_URL'" # replace with frontend URL
-        AllowCredentials: true
+        # AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
+        AllowHeaders: "'Content-Type, X-CF-Token'"
+        # AllowOrigin: "'FRONTEND_URL'" 
+        AllowOrigin: "'http://localhost:5173'" 
+        # AllowCredentials: true
 
       # Logging settings
       MethodSettings:
@@ -32,6 +34,9 @@ Resources:
       Handler: bootstrap
       Runtime: provided.al2023
       MemorySize: 512
+      Environment:
+        Variables:
+          AWS_CF_TOKEN: ""  # override with env.json for local; set via console/parameter for deploy
       Policies:
         - AWSLambdaExecute
         - DynamoDBCrudPolicy:
@@ -43,16 +48,16 @@ Resources:
             Path: /bananas
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              Authorizer: NONE
+            # Auth:
+            #   Authorizer: NONE
         BananasOptionsId:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
-            Auth:
-              Authorizer: NONE
+            # Auth:
+            #   Authorizer: NONE
         GetBanana:
           Type: Api
           Properties:
