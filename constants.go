@@ -1,11 +1,6 @@
 package main
 
-// replace with frontend app URL
-// const OriginURL = "FRONTEND_URL"
-const OriginURL = "http://localhost:5173"
-
-// replace with table name
+// const OriginURL = "http://localhost:5173"
+const OriginURL = "FRONTEND_URL"
 const TableName = "AppnameBananas"
-
-// replace with API path
 const ApiPath = "bananas"

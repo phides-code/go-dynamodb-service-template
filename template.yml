@@ -21,8 +21,8 @@ Resources:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
         # AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
         AllowHeaders: "'Content-Type, X-CF-Token'"
-        # AllowOrigin: "'FRONTEND_URL'" 
-        AllowOrigin: "'http://localhost:5173'" 
+        # AllowOrigin: "'http://localhost:5173'" 
+        AllowOrigin: "'FRONTEND_URL'" 
         # AllowCredentials: true
 
       # Logging settings
