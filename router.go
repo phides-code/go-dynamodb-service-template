@@ -23,20 +23,22 @@ var validate *validator.Validate = validator.New()
 var headers = map[string]string{
 	"Access-Control-Allow-Origin":  OriginURL,
 	"Access-Control-Allow-Headers": "Content-Type, X-CF-Token",
-	// "Access-Control-Allow-Headers":     "Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization",
-	// "Access-Control-Allow-Credentials": "true",
 }
 
 func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Println("router() received " + req.HTTPMethod + " request")
 
-	apiKey := os.Getenv("AWS_CF_TOKEN")
+	awsCfToken := os.Getenv("AWS_CF_TOKEN")
 
-	if apiKey == "" {
+	if awsCfToken == "" {
 		return serverError(errors.New("Error reading environment variable"))
 	}
 
-	log.Println("*** apiKey: " + apiKey)
+	providedCfToken := req.Headers["X-CF-Token"]
+
+	if providedCfToken != awsCfToken {
+		return clientError(http.StatusUnauthorized)
+	}
 
 	switch req.HTTPMethod {
 	case "GET":

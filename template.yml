@@ -15,15 +15,11 @@ Resources:
       Name: "appname-bananas-service"
       StageName: Prod
       Auth:
-        # DefaultAuthorizer: AWS_IAM
-        # InvokeRole: NONE
       Cors:
         AllowMethods: "'OPTIONS, POST, GET, PUT, DELETE'"
-        # AllowHeaders: "'Content-Type, x-amz-content-sha256, x-amz-date, X-Amz-Security-Token, Authorization'"
         AllowHeaders: "'Content-Type, X-CF-Token'"
         # AllowOrigin: "'http://localhost:5173'" 
         AllowOrigin: "'FRONTEND_URL'" 
-        # AllowCredentials: true
 
       # Logging settings
       MethodSettings:
@@ -42,7 +38,7 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          AWS_CF_TOKEN: !Ref CfToken  # from --parameter-overrides CfToken=xxx; for local use env.json
+          AWS_CF_TOKEN: !Ref CfToken  # comes from --parameter-overrides
       Policies:
         - AWSLambdaExecute
         - DynamoDBCrudPolicy:
@@ -54,16 +50,12 @@ Resources:
             Path: /bananas
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
-            # Auth:
-            #   Authorizer: NONE
         BananasOptionsId:
           Type: Api
           Properties:
             Path: /bananas/{id}
             Method: OPTIONS
             RestApiId: !Ref AppnameBananasService
-            # Auth:
-            #   Authorizer: NONE
         GetBanana:
           Type: Api
           Properties:
