@@ -28,16 +28,18 @@ var headers = map[string]string{
 func router(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	log.Println("router() received " + req.HTTPMethod + " request")
 
-	awsCfToken := os.Getenv("AWS_CF_TOKEN")
+	if !localMode {
+		awsCfToken := os.Getenv("AWS_CF_TOKEN")
 
-	if awsCfToken == "" {
-		return serverError(errors.New("Error reading environment variable"))
-	}
+		if awsCfToken == "" {
+			return serverError(errors.New("Error reading environment variable"))
+		}
 
-	providedCfToken := req.Headers["X-CF-Token"]
+		providedCfToken := req.Headers["X-CF-Token"]
 
-	if providedCfToken != awsCfToken {
-		return clientError(http.StatusUnauthorized)
+		if providedCfToken != awsCfToken {
+			return clientError(http.StatusUnauthorized)
+		}
 	}
 
 	switch req.HTTPMethod {
