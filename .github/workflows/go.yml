@@ -13,7 +13,6 @@ jobs:
     build:
         runs-on: ubuntu-latest
         env:
-            SAM_STACK_NAME: appname-bananas-service
             SAM_REGION: us-east-1
         steps:
             - name: Checkout
